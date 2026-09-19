@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -25,6 +26,7 @@ namespace MKRevitMCP
             _listener.Start();
             IsRunning = true;
 
+            Log.Write($"Server started on port {Port}.");
             Task.Run(() => AcceptLoop(_cts.Token));
         }
 
@@ -35,6 +37,7 @@ namespace MKRevitMCP
             IsRunning = false;
             _cts.Cancel();
             _listener.Stop();
+            Log.Write("Server stopped.");
         }
 
         private static async Task AcceptLoop(CancellationToken token)
@@ -46,9 +49,10 @@ namespace MKRevitMCP
                 {
                     client = await _listener.AcceptTcpClientAsync();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    break; // listener stopped
+                    Log.Write($"Accept loop ended: {ex.Message}");
+                    break;
                 }
 
                 _ = Task.Run(() => HandleClient(client));
@@ -85,8 +89,6 @@ namespace MKRevitMCP
                         await writer.WriteLineAsync(response);
                         Log.Write("Response written.");
                     }
-
-                    Log.Write("Client disconnected.");
                 }
             }
             catch (IOException)
@@ -101,23 +103,55 @@ namespace MKRevitMCP
 
         private static async Task<string> Dispatch(string line)
         {
-            string tool;
-
             using (var json = JsonDocument.Parse(line))
             {
-                tool = json.RootElement.GetProperty("tool").GetString();
-            }
+                var root = json.RootElement;
+                string tool = root.GetProperty("tool").GetString();
 
-            switch (tool)
-            {
-                case "ping":
-                    return JsonSerializer.Serialize(new { pong = true });
+                Log.Write($"Dispatching tool: {tool}");
 
-                case "get_model_info":
-                    return await RevitTask.RunAsync(Tools.GetModelInfo);
+                switch (tool)
+                {
+                    case "ping":
+                        return JsonSerializer.Serialize(new { pong = true });
 
-                default:
-                    return JsonSerializer.Serialize(new { error = "Unknown tool: " + tool });
+                    case "get_model_info":
+                        return await RevitTask.RunAsync(Tools.GetModelInfo);
+
+                    case "list_views":
+                        {
+                            string viewType = root.TryGetProperty("viewType", out var vt)
+                                ? vt.GetString() : null;
+                            string nameContains = root.TryGetProperty("nameContains", out var nc)
+                                ? nc.GetString() : null;
+
+                            return await RevitTask.RunAsync(
+                                app => Tools.ListViews(app, viewType, nameContains));
+                        }
+
+                    case "rename_views":
+                        {
+                            var renames = new List<Tools.RenamePair>();
+
+                            if (root.TryGetProperty("renames", out var arr))
+                            {
+                                foreach (var item in arr.EnumerateArray())
+                                {
+                                    renames.Add(new Tools.RenamePair
+                                    {
+                                        Id = item.GetProperty("id").GetInt64(),
+                                        NewName = item.GetProperty("newName").GetString()
+                                    });
+                                }
+                            }
+
+                            return await RevitTask.RunAsync(
+                                app => Tools.RenameViews(app, renames));
+                        }
+
+                    default:
+                        return JsonSerializer.Serialize(new { error = "Unknown tool: " + tool });
+                }
             }
         }
     }
