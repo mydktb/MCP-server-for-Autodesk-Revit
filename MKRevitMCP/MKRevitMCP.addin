@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+	<AddIn Type="Application">
+		<Name>MKRevitMCP</Name>
+		<Assembly>MKRevitMCP.dll</Assembly>
+		<AddInId>7ef0d2ba-aa89-44a5-8492-290cabf82195</AddInId>
+		<FullClassName>MKRevitMCP.Application</FullClassName>
+		<VendorId>MK</VendorId>
+		<VendorDescription>MK Revit MCP</VendorDescription>
+	</AddIn>
+</RevitAddIns>
