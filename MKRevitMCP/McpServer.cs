@@ -148,6 +148,116 @@ namespace MKRevitMCP
                             return await RevitTask.RunAsync(
                                 app => Tools.RenameViews(app, renames));
                         }
+                    case "get_warnings":
+                        {
+                            int maxIds = root.TryGetProperty("maxIdsPerGroup", out var mi)
+                                ? mi.GetInt32() : 20;
+
+                            return await RevitTask.RunAsync(
+                                app => Tools.GetWarnings(app, maxIds));
+                        }
+
+                    case "set_selection":
+                        {
+                            var ids = new List<long>();
+
+                            if (root.TryGetProperty("ids", out var idArr))
+                            {
+                                foreach (var item in idArr.EnumerateArray())
+                                    ids.Add(item.GetInt64());
+                            }
+
+                            return await RevitTask.RunAsync(
+                                app => Tools.SetSelection(app, ids));
+                        }
+                    case "get_categories_by_keywords":
+                        {
+                            var keywords = new List<string>();
+
+                            if (root.TryGetProperty("keywords", out var kw))
+                            {
+                                foreach (var item in kw.EnumerateArray())
+                                    keywords.Add(item.GetString());
+                            }
+
+                            return await RevitTask.RunAsync(
+                                app => Tools.GetCategoriesByKeywords(app, keywords));
+                        }
+
+                    case "count_elements_by_category":
+                        {
+                            var catIds = new List<long>();
+
+                            if (root.TryGetProperty("categoryIds", out var ci))
+                            {
+                                foreach (var item in ci.EnumerateArray())
+                                    catIds.Add(item.GetInt64());
+                            }
+
+                            return await RevitTask.RunAsync(
+                                app => Tools.CountElementsByCategory(app, catIds));
+                        }
+
+                    case "get_elements_by_category":
+                        {
+                            long catId = root.GetProperty("categoryId").GetInt64();
+
+                            int maxIds = root.TryGetProperty("maxIdsPerType", out var mx)
+                                ? mx.GetInt32() : 50;
+
+                            bool byType = !root.TryGetProperty("groupByType", out var gb)
+                                || gb.GetBoolean();
+
+                            return await RevitTask.RunAsync(
+                                app => Tools.GetElementsByCategory(app, catId, maxIds, byType));
+                        }
+
+                    case "get_element_parameters":
+                        {
+                            long elId = root.GetProperty("elementId").GetInt64();
+
+                            bool incType = !root.TryGetProperty("includeType", out var it)
+                                || it.GetBoolean();
+
+                            return await RevitTask.RunAsync(
+                                app => Tools.GetElementParameters(app, elId, incType));
+                        }
+
+                    case "get_parameter_values":
+                        {
+                            var ids = new List<long>();
+                            if (root.TryGetProperty("elementIds", out var ia))
+                                foreach (var item in ia.EnumerateArray())
+                                    ids.Add(item.GetInt64());
+
+                            var names = new List<string>();
+                            if (root.TryGetProperty("parameterNames", out var na))
+                                foreach (var item in na.EnumerateArray())
+                                    names.Add(item.GetString());
+
+                            bool grouped = !root.TryGetProperty("groupByValue", out var gv)
+                                || gv.GetBoolean();
+
+                            return await RevitTask.RunAsync(
+                                app => Tools.GetParameterValues(app, ids, names, grouped));
+                        }
+
+                    case "set_parameter_value":
+                        {
+                            var ids = new List<long>();
+                            if (root.TryGetProperty("elementIds", out var sa))
+                                foreach (var item in sa.EnumerateArray())
+                                    ids.Add(item.GetInt64());
+
+                            string pName = root.GetProperty("parameterName").GetString();
+                            string pValue = root.GetProperty("newValue").GetString();
+
+                            bool dry = !root.TryGetProperty("dryRun", out var dr)
+                                || dr.GetBoolean();
+
+                            return await RevitTask.RunAsync(
+                                app => Tools.SetParameterValue(app, ids, pName, pValue, dry));
+                        }
 
                     default:
                         return JsonSerializer.Serialize(new { error = "Unknown tool: " + tool });
