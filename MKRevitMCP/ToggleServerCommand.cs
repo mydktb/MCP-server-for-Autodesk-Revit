@@ -12,12 +12,12 @@ namespace MKRevitMCP.Commands
             if (McpServer.IsRunning)
             {
                 McpServer.Stop();
-                Application.ServerButton.ItemText = "Start\nServer";
+                Application.ServerButton.ItemText = "Start";
             }
             else
             {
                 McpServer.Start();
-                Application.ServerButton.ItemText = "Stop\nServer";
+                Application.ServerButton.ItemText = "Stop";
             }
 
             return Result.Succeeded;

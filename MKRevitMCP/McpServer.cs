@@ -110,6 +110,13 @@ namespace MKRevitMCP
 
                 Log.Write($"Dispatching tool: {tool}");
 
+                if (ToolRegistry.TryGet(tool, out var registered))
+                {
+                    Log.Write($"Handled by registry: {tool}");
+                    var args = root.Clone();
+                    return await RevitTask.RunAsync(app => registered.Execute(app, args));
+                }
+
                 switch (tool)
                 {
                     case "ping":

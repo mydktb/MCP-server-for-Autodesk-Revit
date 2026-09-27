@@ -1,0 +1,173 @@
+[
+  {
+    "name": "get_model_info",
+    "title": "Get Revit model info",
+    "description": "Get the title, file path, active view and view count of the Revit model currently open.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "get_warnings",
+    "title": "Get Revit model warnings",
+    "description": "List the warnings in the open Revit model, grouped by description with counts and the element ids involved. Use this to audit model health.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "maxIdsPerGroup": { "type": "integer", "description": "Max element ids returned per warning group, default 20" }
+      }
+    }
+  },
+  {
+    "name": "list_views",
+    "title": "List Revit views",
+    "description": "List views in the open Revit model. Optionally filter by view type (e.g. FloorPlan, CeilingPlan, Section, ThreeD) or by text contained in the view name. Returns id, name and type for each.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "viewType": { "type": "string", "description": "Filter by ViewType, e.g. FloorPlan" },
+        "nameContains": { "type": "string", "description": "Only views whose name contains this text" }
+      }
+    }
+  },
+  {
+    "name": "rename_views",
+    "title": "Rename Revit views",
+    "description": "Rename one or more views in the open Revit model. Supply an array of {id, newName}. Get ids from list_views first. View names must be unique within a view type.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "renames": {
+          "type": "array",
+          "description": "The views to rename",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer", "description": "The view's element id" },
+              "newName": { "type": "string", "description": "The new view name" }
+            },
+            "required": ["id", "newName"]
+          }
+        }
+      },
+      "required": ["renames"]
+    }
+  },
+  {
+    "name": "get_categories_by_keywords",
+    "title": "Find Revit categories",
+    "description": "Find Revit categories whose name contains any of the given keywords. Returns the category id needed by the other category tools. Always call this first - category ids are negative numbers that cannot be guessed.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Words to match against category names, e.g. ['Door','Window']"
+        }
+      },
+      "required": ["keywords"]
+    }
+  },
+  {
+    "name": "count_elements_by_category",
+    "title": "Count elements by category",
+    "description": "Count placed element instances in one or more categories. Cheap - use this before get_elements_by_category to see how big the result will be.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "categoryIds": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "description": "Category ids from get_categories_by_keywords"
+        }
+      },
+      "required": ["categoryIds"]
+    }
+  },
+  {
+    "name": "get_elements_by_category",
+    "title": "Get elements in a category",
+    "description": "Get placed elements in a category, grouped by family and type with element ids. Ids can be passed to set_selection. Use maxIdsPerType to cap the response on large categories.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "categoryId": { "type": "integer", "description": "Category id from get_categories_by_keywords" },
+        "maxIdsPerType": { "type": "integer", "description": "Max ids returned per type group, default 50" },
+        "groupByType": { "type": "boolean", "description": "Group by family and type, default true" }
+      },
+      "required": ["categoryId"]
+    }
+  },
+  {
+    "name": "set_selection",
+    "title": "Select elements in Revit",
+    "description": "Select elements in the open Revit model by element id, and scroll the active view to show them. Pass an empty array to clear the selection.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "description": "Element ids to select"
+        }
+      },
+      "required": ["ids"]
+    }
+  },
+  {
+    "name": "get_element_parameters",
+    "title": "Get all parameters of one element",
+    "description": "List every parameter on a single element, with values, storage types and whether each is read-only. Use this first to discover exact parameter names before reading or writing across many elements. Double values are in Revit internal units (feet); the 'display' field shows the formatted value.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "elementId": { "type": "integer", "description": "The element id to inspect" },
+        "includeType": { "type": "boolean", "description": "Also return the element type's parameters, default true" }
+      },
+      "required": ["elementId"]
+    }
+  },
+  {
+    "name": "get_parameter_values",
+    "title": "Read parameters across many elements",
+    "description": "Read named parameters across many elements, grouped by value by default so large sets stay compact. Falls back to the element type when an instance has no such parameter. Get exact names from get_element_parameters first.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "description": "Elements to read"
+        },
+        "parameterNames": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Exact parameter names, e.g. ['Mark','Fire Rating']"
+        },
+        "groupByValue": { "type": "boolean", "description": "Group ids by shared value, default true" }
+      },
+      "required": ["elementIds", "parameterNames"]
+    }
+  },
+  {
+    "name": "set_parameter_value",
+    "title": "Set a parameter on many elements",
+    "description": "Write one instance parameter across many elements. Defaults to a dry run that reports what would change without changing it - call with dryRun false to commit. Only instance parameters are written, never type parameters. Double values must be supplied in Revit internal units (feet).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "description": "Elements to modify"
+        },
+        "parameterName": { "type": "string", "description": "Exact parameter name" },
+        "newValue": { "type": "string", "description": "New value as text; converted to the parameter's storage type" },
+        "dryRun": { "type": "boolean", "description": "Preview only, default true" }
+      },
+      "required": ["elementIds", "parameterName", "newValue"]
+    }
+  }
+]

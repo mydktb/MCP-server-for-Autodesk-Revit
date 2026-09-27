@@ -10,9 +10,11 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AssemblyName>MKRevitMCP</AssemblyName>
 		<RootNamespace>MKRevitMCP</RootNamespace>
+		<UseWPF>true</UseWPF>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<EmbeddedResource Include="Resources\*.png" />
 		<Reference Include="RevitAPI">
 			<HintPath>C:\Program Files\Autodesk\Revit 2025\RevitAPI.dll</HintPath>
 			<Private>false</Private>
