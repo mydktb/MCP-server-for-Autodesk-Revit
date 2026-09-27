@@ -15,7 +15,10 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "maxIdsPerGroup": { "type": "integer", "description": "Max element ids returned per warning group, default 20" }
+        "maxIdsPerGroup": {
+          "type": "integer",
+          "description": "Max element ids returned per warning group, default 20"
+        }
       }
     }
   },
@@ -26,8 +29,14 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "viewType": { "type": "string", "description": "Filter by ViewType, e.g. FloorPlan" },
-        "nameContains": { "type": "string", "description": "Only views whose name contains this text" }
+        "viewType": {
+          "type": "string",
+          "description": "Filter by ViewType, e.g. FloorPlan"
+        },
+        "nameContains": {
+          "type": "string",
+          "description": "Only views whose name contains this text"
+        }
       }
     }
   },
@@ -44,14 +53,25 @@
           "items": {
             "type": "object",
             "properties": {
-              "id": { "type": "integer", "description": "The view's element id" },
-              "newName": { "type": "string", "description": "The new view name" }
+              "id": {
+                "type": "integer",
+                "description": "The view's element id"
+              },
+              "newName": {
+                "type": "string",
+                "description": "The new view name"
+              }
             },
-            "required": ["id", "newName"]
+            "required": [
+              "id",
+              "newName"
+            ]
           }
         }
       },
-      "required": ["renames"]
+      "required": [
+        "renames"
+      ]
     }
   },
   {
@@ -63,11 +83,15 @@
       "properties": {
         "keywords": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Words to match against category names, e.g. ['Door','Window']"
         }
       },
-      "required": ["keywords"]
+      "required": [
+        "keywords"
+      ]
     }
   },
   {
@@ -79,11 +103,15 @@
       "properties": {
         "categoryIds": {
           "type": "array",
-          "items": { "type": "integer" },
+          "items": {
+            "type": "integer"
+          },
           "description": "Category ids from get_categories_by_keywords"
         }
       },
-      "required": ["categoryIds"]
+      "required": [
+        "categoryIds"
+      ]
     }
   },
   {
@@ -93,11 +121,22 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "categoryId": { "type": "integer", "description": "Category id from get_categories_by_keywords" },
-        "maxIdsPerType": { "type": "integer", "description": "Max ids returned per type group, default 50" },
-        "groupByType": { "type": "boolean", "description": "Group by family and type, default true" }
+        "categoryId": {
+          "type": "integer",
+          "description": "Category id from get_categories_by_keywords"
+        },
+        "maxIdsPerType": {
+          "type": "integer",
+          "description": "Max ids returned per type group, default 50"
+        },
+        "groupByType": {
+          "type": "boolean",
+          "description": "Group by family and type, default true"
+        }
       },
-      "required": ["categoryId"]
+      "required": [
+        "categoryId"
+      ]
     }
   },
   {
@@ -109,11 +148,15 @@
       "properties": {
         "ids": {
           "type": "array",
-          "items": { "type": "integer" },
+          "items": {
+            "type": "integer"
+          },
           "description": "Element ids to select"
         }
       },
-      "required": ["ids"]
+      "required": [
+        "ids"
+      ]
     }
   },
   {
@@ -123,10 +166,18 @@
     "inputSchema": {
       "type": "object",
       "properties": {
-        "elementId": { "type": "integer", "description": "The element id to inspect" },
-        "includeType": { "type": "boolean", "description": "Also return the element type's parameters, default true" }
+        "elementId": {
+          "type": "integer",
+          "description": "The element id to inspect"
+        },
+        "includeType": {
+          "type": "boolean",
+          "description": "Also return the element type's parameters, default true"
+        }
       },
-      "required": ["elementId"]
+      "required": [
+        "elementId"
+      ]
     }
   },
   {
@@ -138,17 +189,27 @@
       "properties": {
         "elementIds": {
           "type": "array",
-          "items": { "type": "integer" },
+          "items": {
+            "type": "integer"
+          },
           "description": "Elements to read"
         },
         "parameterNames": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Exact parameter names, e.g. ['Mark','Fire Rating']"
         },
-        "groupByValue": { "type": "boolean", "description": "Group ids by shared value, default true" }
+        "groupByValue": {
+          "type": "boolean",
+          "description": "Group ids by shared value, default true"
+        }
       },
-      "required": ["elementIds", "parameterNames"]
+      "required": [
+        "elementIds",
+        "parameterNames"
+      ]
     }
   },
   {
@@ -160,14 +221,172 @@
       "properties": {
         "elementIds": {
           "type": "array",
-          "items": { "type": "integer" },
+          "items": {
+            "type": "integer"
+          },
           "description": "Elements to modify"
         },
-        "parameterName": { "type": "string", "description": "Exact parameter name" },
-        "newValue": { "type": "string", "description": "New value as text; converted to the parameter's storage type" },
-        "dryRun": { "type": "boolean", "description": "Preview only, default true" }
+        "parameterName": {
+          "type": "string",
+          "description": "Exact parameter name"
+        },
+        "newValue": {
+          "type": "string",
+          "description": "New value as text; converted to the parameter's storage type"
+        },
+        "dryRun": {
+          "type": "boolean",
+          "description": "Preview only, default true"
+        }
       },
-      "required": ["elementIds", "parameterName", "newValue"]
+      "required": [
+        "elementIds",
+        "parameterName",
+        "newValue"
+      ]
+    }
+  },
+  {
+    "name": "list_sheets",
+    "title": "List Revit sheets",
+    "description": "List sheets in the open Revit model with number, name and the views placed on each. Optionally filter by text in the sheet number or name.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "nameContains": {
+          "type": "string",
+          "description": "Only sheets whose number or name contains this text"
+        },
+        "includeViews": {
+          "type": "boolean",
+          "description": "Include the views placed on each sheet, default true"
+        }
+      }
+    }
+  },
+  {
+    "name": "list_titleblocks",
+    "title": "List title block types",
+    "description": "List the title block types loaded in the model, with the ids that create_sheets needs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "create_sheets",
+    "title": "Create Revit sheets",
+    "description": "Create one or more sheets. Each needs a name; the number is optional (Revit assigns one if omitted). Uses titleBlockTypeId if given, otherwise the first title block in the model - call list_titleblocks first to choose properly. Sheet numbers must be unique.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sheets": {
+          "type": "array",
+          "description": "The sheets to create",
+          "items": {
+            "type": "object",
+            "properties": {
+              "number": {
+                "type": "string",
+                "description": "Sheet number, e.g. A101"
+              },
+              "name": {
+                "type": "string",
+                "description": "Sheet name"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+        "titleBlockTypeId": {
+          "type": "integer",
+          "description": "Title block type id from list_titleblocks"
+        }
+      },
+      "required": [
+        "sheets"
+      ]
+    }
+  },
+  {
+    "name": "rename_sheets",
+    "title": "Renumber or rename Revit sheets",
+    "description": "Change the number and/or name of one or more sheets. Get ids from list_sheets. Swapping numbers between sheets in one request is supported. The whole batch rolls back if Revit rejects any change.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "renames": {
+          "type": "array",
+          "description": "The sheets to change",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "Sheet element id"
+              },
+              "number": {
+                "type": "string",
+                "description": "New sheet number"
+              },
+              "name": {
+                "type": "string",
+                "description": "New sheet name"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        }
+      },
+      "required": [
+        "renames"
+      ]
+    }
+  },
+  {
+    "name": "place_views_on_sheets",
+    "title": "Place views on sheets",
+    "description": "Place views or schedules on sheets. Position is in millimetres from the sheet origin; omit xMm and yMm to centre the view on the sheet. A view can only be on one sheet (schedules and legends excepted) - the failure reason says which sheet already holds it.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "placements": {
+          "type": "array",
+          "description": "The placements to make",
+          "items": {
+            "type": "object",
+            "properties": {
+              "viewId": {
+                "type": "integer",
+                "description": "View id from list_views"
+              },
+              "sheetId": {
+                "type": "integer",
+                "description": "Sheet id from list_sheets"
+              },
+              "xMm": {
+                "type": "number",
+                "description": "X position in mm from the sheet origin"
+              },
+              "yMm": {
+                "type": "number",
+                "description": "Y position in mm from the sheet origin"
+              }
+            },
+            "required": [
+              "viewId",
+              "sheetId"
+            ]
+          }
+        }
+      },
+      "required": [
+        "placements"
+      ]
     }
   }
 ]

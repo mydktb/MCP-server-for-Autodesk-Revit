@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Autodesk.Revit.UI;
 
 namespace MKRevitMCP.McpTools
