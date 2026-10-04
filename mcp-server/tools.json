@@ -388,5 +388,230 @@
         "placements"
       ]
     }
+  },
+  {
+    "name": "list_levels",
+    "title": "List levels",
+    "description": "List the levels in the model, lowest first, with elevation in millimetres and the plan views that already exist on each level. Use it to find level ids and to see which levels are missing a plan.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "list_view_templates",
+    "title": "List view templates",
+    "description": "List the view templates in the model and the view type each applies to. Optionally filter by view type, e.g. FloorPlan.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "viewType": {
+          "type": "string",
+          "description": "Only templates for this ViewType, e.g. FloorPlan"
+        }
+      }
+    }
+  },
+  {
+    "name": "create_plan_views",
+    "title": "Create plan views",
+    "description": "Create floor, ceiling or structural plans on one or more levels. Get level ids from list_levels. Optionally name each view and apply a view template as it is created.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plans": {
+          "type": "array",
+          "description": "One entry per view to create",
+          "items": {
+            "type": "object",
+            "properties": {
+              "levelId": {
+                "type": "integer",
+                "description": "Level id from list_levels"
+              },
+              "name": {
+                "type": "string",
+                "description": "View name; Revit names it after the level if omitted"
+              }
+            },
+            "required": [
+              "levelId"
+            ]
+          }
+        },
+        "planType": {
+          "type": "string",
+          "enum": [
+            "FloorPlan",
+            "CeilingPlan",
+            "StructuralPlan"
+          ],
+          "description": "Kind of plan, default FloorPlan"
+        },
+        "viewFamilyTypeId": {
+          "type": "integer",
+          "description": "Specific view family type; the first of the right kind is used if omitted"
+        },
+        "templateId": {
+          "type": "integer",
+          "description": "View template id from list_view_templates"
+        }
+      },
+      "required": [
+        "plans"
+      ]
+    }
+  },
+  {
+    "name": "duplicate_views",
+    "title": "Duplicate views",
+    "description": "Duplicate one or more views. Mode 'duplicate' copies the view only, 'with_detailing' also copies annotation and detailing, 'dependent' creates a dependent view. Use this when a view is already on a sheet and needs to appear on another.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "views": {
+          "type": "array",
+          "description": "The views to duplicate",
+          "items": {
+            "type": "object",
+            "properties": {
+              "viewId": {
+                "type": "integer",
+                "description": "View id from list_views"
+              },
+              "newName": {
+                "type": "string",
+                "description": "Name for the copy; Revit generates one if omitted"
+              }
+            },
+            "required": [
+              "viewId"
+            ]
+          }
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "duplicate",
+            "with_detailing",
+            "dependent"
+          ],
+          "description": "How to duplicate, default duplicate"
+        }
+      },
+      "required": [
+        "views"
+      ]
+    }
+  },
+  {
+    "name": "apply_view_template",
+    "title": "Apply or remove a view template",
+    "description": "Apply a view template to many views, or remove templates by omitting templateId. Applying a template overrides each view's own settings, so this defaults to a dry run - call with dryRun false to commit. Views of a type the template doesn't suit are reported, not changed.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "viewIds": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "description": "Views to change"
+        },
+        "templateId": {
+          "type": "integer",
+          "description": "Template id from list_view_templates; omit to remove templates"
+        },
+        "dryRun": {
+          "type": "boolean",
+          "description": "Preview only, default true"
+        }
+      },
+      "required": [
+        "viewIds"
+      ]
+    }
+  },
+  {
+    "name": "list_schedulable_fields",
+    "title": "List schedulable fields",
+    "description": "List the field names a schedule of the given category can include. Call this before create_schedule - field names must match exactly. Get the category id from get_categories_by_keywords.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "categoryId": {
+          "type": "integer",
+          "description": "Category id from get_categories_by_keywords"
+        },
+        "nameContains": {
+          "type": "string",
+          "description": "Only fields whose name contains this text"
+        }
+      },
+      "required": [
+        "categoryId"
+      ]
+    }
+  },
+  {
+    "name": "create_schedule",
+    "title": "Create a schedule",
+    "description": "Create a schedule for a category with the given fields, in order. Field names come from list_schedulable_fields; unknown names are reported and skipped. Optionally sort by one or more of the included fields, and choose itemized (one row per element) or grouped.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "categoryId": {
+          "type": "integer",
+          "description": "Category id from get_categories_by_keywords"
+        },
+        "name": {
+          "type": "string",
+          "description": "Schedule name"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Field names in column order"
+        },
+        "sortBy": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Fields to sort by, in priority order; each must also be in fields"
+        },
+        "itemized": {
+          "type": "boolean",
+          "description": "One row per element, default true; false groups identical rows"
+        }
+      },
+      "required": [
+        "categoryId",
+        "fields"
+      ]
+    }
+  },
+  {
+    "name": "get_schedule_data",
+    "title": "Read a schedule",
+    "description": "Read the contents of a schedule as rows of text, exactly as Revit displays them. The first row or rows are the column headings. Find schedule ids with list_views and viewType Schedule.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "type": "integer",
+          "description": "Schedule view id"
+        },
+        "maxRows": {
+          "type": "integer",
+          "description": "Max rows returned, default 200"
+        }
+      },
+      "required": [
+        "scheduleId"
+      ]
+    }
   }
 ]
