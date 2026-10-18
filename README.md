@@ -1,6 +1,6 @@
 # MKRevitMCP
 
-An MCP server for Autodesk Revit. Lets Claude read from and write to an open Revit model: query elements and parameters, audit warnings, rename views, create sheets and place views on them.
+An MCP server for Autodesk Revit. Lets Claude read from and write to an open Revit model: query elements and parameters, audit warnings, create plans, sheets and schedules, and clean up unused content.
 
 ## How it works
 
@@ -60,6 +60,11 @@ Use the full path to `node.exe`. Claude Desktop does not always inherit your PAT
 |---|---|
 | `list_views` | List views, filtered by view type or name |
 | `rename_views` | Batch rename views by element id |
+| `list_levels` | Levels with elevation in mm and the plan views on each |
+| `list_view_templates` | View templates and the view type each applies to |
+| `create_plan_views` | Floor, ceiling or structural plans per level, with optional name and template |
+| `duplicate_views` | Duplicate views plainly, with detailing, or as dependents |
+| `apply_view_template` | Apply or remove a template on many views. Dry run by default |
 
 ### Sheets
 
@@ -70,6 +75,14 @@ Use the full path to `node.exe`. Claude Desktop does not always inherit your PAT
 | `create_sheets` | Create sheets with a number, name and title block |
 | `rename_sheets` | Renumber and/or rename sheets; swapping numbers is supported |
 | `place_views_on_sheets` | Place views or schedules on sheets, positioned in mm or centred |
+
+### Schedules
+
+| Tool | Description |
+|---|---|
+| `list_schedulable_fields` | Field names available to a schedule of a given category |
+| `create_schedule` | Create a schedule with fields, sorting, and itemized or grouped rows |
+| `get_schedule_data` | Read a schedule's contents as rows, exactly as Revit displays them |
 
 ### Elements
 
@@ -87,6 +100,14 @@ Use the full path to `node.exe`. Claude Desktop does not always inherit your PAT
 | `get_element_parameters` | Every parameter on one element. Use it to discover exact names |
 | `get_parameter_values` | Read named parameters across many elements, grouped by value |
 | `set_parameter_value` | Write one instance parameter across many elements. Dry run by default |
+
+### Cleanup
+
+| Tool | Description |
+|---|---|
+| `find_unplaced_views` | Views and schedules not on any sheet, with dependent-view counts |
+| `find_unused_families` | Families with no placed instances, and families with unused types |
+| `delete_elements` | Delete elements. Dry run by default, showing the full cascade of what else would go |
 
 ## Adding a tool
 
@@ -111,17 +132,19 @@ The add-in finds it automatically at startup.
 
 **2. Add an entry to `mcp-server/tools.json`** with the same name, a description, and a JSON Schema for its arguments.
 
-Build, restart Claude Desktop, and it's live. The name must match exactly in both places. If it doesn't, Claude sees the tool but Revit answers `Unknown tool`.
+Build with Revit closed, then quit and relaunch Claude Desktop. The name must match exactly in both places. If it doesn't, Claude sees the tool but Revit answers `Unknown tool`.
 
 ## Design notes
 
-**Discovery before action.** Category ids, parameter names and title block ids can't be guessed, so each has a lookup tool that Claude calls first.
+**Discovery before action.** Category ids, parameter names, level ids, template ids, title block ids and schedulable field names can't be guessed, so each has a lookup tool that Claude calls first.
 
 **Grouped returns.** Bulk tools group results by type or value instead of returning one row per element. This keeps responses small on large models.
 
-**Dry run by default.** `set_parameter_value` previews its changes unless called with `dryRun: false`.
+**Dry run by default.** `set_parameter_value`, `apply_view_template` and `delete_elements` preview their changes unless called with `dryRun: false`. The delete preview performs the deletion inside a transaction, records everything Revit removes, and rolls back, so it shows the real cascade rather than a guess.
 
 **Transactions.** Every write runs inside a named Revit transaction. Changes appear in the undo stack as one step and roll back cleanly on failure.
+
+**No blocking dialogs.** Revit can show warnings in a modal dialog when a transaction commits, which would freeze the server. `SilentFailures` dismisses warnings and rolls back on real errors instead.
 
 **Units.** Revit stores all lengths internally in feet. Tools take and return millimetres, and `UnitConvert` handles the conversion at the boundary. Parameter reads return both the raw internal value and a formatted `display` string.
 
@@ -129,7 +152,20 @@ Build, restart Claude Desktop, and it's live. The name must match exactly in bot
 
 ## Troubleshooting
 
-Revit only processes requests when it is idle. If a dialog is open or a command is running, requests queue and may time out.
+**Claude doesn't see a new tool.** Claude Desktop reads `tools.json` once, at startup. Quit it from the system tray (closing the window is not enough), relaunch, and start a new chat.
+
+**Claude sees the tool but Revit says `Unknown tool`.** The add-in wasn't rebuilt, usually because Revit was open during the build. Close Revit and rebuild.
+
+**Check both halves agree.** Each log reports how many tools it loaded:
+
+```powershell
+Select-String -Path C:\Temp\mcp-node.log -Pattern "Loaded" | Select-Object -Last 1
+Select-String -Path C:\Temp\mcp.log -Pattern "ToolRegistry ready" | Select-Object -Last 1
+```
+
+The two counts should match.
+
+**Requests time out.** Revit only processes requests when it is idle. If a dialog is open or a command is running, requests queue and may time out.
 
 Two log files record what happened:
 
@@ -140,8 +176,7 @@ Between them you can see how far a request got before it stopped.
 
 ## Roadmap
 
-- Views: create floor plans, duplicate views, apply view templates
-- Schedules
-- Cleanup: delete elements, unplaced views, unused families
-- Levels and geometry
-- More ribbon commands and icons
+- Levels and basic geometry
+- Distribution: installer, one-click Claude Desktop extension, Revit 2026 support
+- Security token and configurable port
+- Ribbon icons and additional commands

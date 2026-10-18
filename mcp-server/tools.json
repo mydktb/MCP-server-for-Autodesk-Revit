@@ -613,5 +613,69 @@
         "scheduleId"
       ]
     }
+  },
+  {
+    "name": "delete_elements",
+    "title": "Delete elements",
+    "description": "Delete elements by id. Defaults to a dry run that reports everything that would go, including the cascade: deleting a level also deletes its views, deleting a family deletes its types and instances. Always review the dry run, then call with dryRun false to commit. The active view and pinned elements are protected unless includePinned is true.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "description": "Elements to delete"
+        },
+        "dryRun": {
+          "type": "boolean",
+          "description": "Preview only, default true"
+        },
+        "includePinned": {
+          "type": "boolean",
+          "description": "Also delete pinned elements, default false"
+        }
+      },
+      "required": [
+        "elementIds"
+      ]
+    }
+  },
+  {
+    "name": "find_unplaced_views",
+    "title": "Find views not on any sheet",
+    "description": "List views and schedules that are not placed on any sheet, grouped by view type, with dependent-view counts. Unplaced does not mean unwanted - working views are often never placed. Use it to review cleanup candidates, then preview with delete_elements.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "viewType": {
+          "type": "string",
+          "description": "Only this ViewType, e.g. FloorPlan"
+        },
+        "includeSchedules": {
+          "type": "boolean",
+          "description": "Include schedules, default true"
+        }
+      }
+    }
+  },
+  {
+    "name": "find_unused_families",
+    "title": "Find unused families and types",
+    "description": "Find loadable families with no placed instances, and families where only some types are used. In-place families are excluded. Results are candidates: a type can be used as a default tag or nested family without any placed element. Preview with delete_elements before removing.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "categoryContains": {
+          "type": "string",
+          "description": "Only families whose category name contains this text"
+        },
+        "maxFamilies": {
+          "type": "integer",
+          "description": "Max families listed per group, default 100"
+        }
+      }
+    }
   }
 ]
